@@ -15,7 +15,7 @@ function enableResize() {
 
   function onMouseMove(e) {
     if (!currentTh) return;
-    const newWidth = startWidth + (e.pageX - startX);
+    const newWidth = startWidth + (e.pageX - startX) - 16;
     currentTh.style.width = newWidth + "px"; // no constraints
   }
   function onMouseUp() {
