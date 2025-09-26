@@ -1,0 +1,98 @@
+* {
+  padding: 0;
+  margin: 0;
+  color: var(--text-primary);
+  font-family: Inter;
+}
+
+:root {
+  --gray-primary: #1c1c1c;
+  --gray-secondary: #222;
+  --border: #444;
+  --border-light: #4448;
+  --text-primary: white;
+  --accent-blue: #004fca;
+}
+
+body {
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--gray-primary);
+  color-scheme: dark;
+}
+body header {
+  width: calc(100vw - 32px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--gray-secondary);
+  border-bottom: 1px var(--border-light) solid;
+  padding: 8px 16px;
+  z-index: 1;
+}
+body header div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+body header a {
+  text-decoration: none;
+}
+body header button {
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: 1px var(--border) solid;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: scale 200ms, background-color 200ms;
+}
+body header button:hover {
+  background-color: var(--gray-primary);
+}
+body header button:active {
+  scale: 0.9;
+}
+body header button svg {
+  height: 22px;
+}
+body main {
+  max-width: calc(100vw - 16px);
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  overflow: auto;
+}
+body main div.language-table table {
+  width: 100%;
+  border-spacing: 8px;
+  table-layout: fixed;
+}
+body main div.language-table table th, body main div.language-table table td {
+  max-width: 50vw;
+  position: relative;
+  border: 1px var(--border-light) solid;
+  border-radius: 4px;
+  padding: 8px;
+}
+body main div.language-table table th .resizer, body main div.language-table table td .resizer {
+  position: absolute;
+  right: -8px;
+  top: 0;
+  width: 8px;
+  cursor: col-resize;
+  user-select: none;
+  height: 100%;
+}
+body main div.language-table table th {
+  background-color: var(--accent-blue);
+}
+body main div.language-table table td {
+  background-color: var(--gray-secondary);
+}/*# sourceMappingURL=style.css.map */

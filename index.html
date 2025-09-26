@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Alexander499">
+
+  <!-- Tab -->
+  <title>Language Editor</title>
+  <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
+    <text y=%221em%22 font-size=%2285%22>🪷</text>
+  </svg>" type="image/x-icon">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/compiled/style.css">
+
+  <!-- Scripts -->
+  <script defer src="script.js"></script>
+  <noscript>Either you have disabled JavaScript or your browser doesn't support it. Get a new Browser (e.g. Google Chrome, Microsoft Edge, Safari, Mozilla Firefox, Opera).</noscript>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🪷</h1>
+      <a href> Language Editor</a>
+      <button id="openFolderButton"><i data-lucide="folder-open"></i></button>
+    </div>
+    <div>
+      <button id="saveButton"><i data-lucide="save"></i></button>
+      <button id="refreshButton"><i data-lucide="rotate-cw"></i></button>
+      <button id="addKeyButton"><i data-lucide="square-plus"></i></button>
+      <button id="addLanguageButton"><i data-lucide="languages"></i></button>
+    </div>
+  </header>
+  <main>
+    <div class="language-table">
+      <table>
+        <thead><tr></tr></thead>
+        <tbody><tr></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
