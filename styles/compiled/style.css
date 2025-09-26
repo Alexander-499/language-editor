@@ -11,7 +11,6 @@
   --border: #444;
   --border-light: #4448;
   --text-primary: white;
-  --accent-blue: #004fca;
 }
 
 body {
@@ -90,11 +89,17 @@ body main div.language-table table th .resizer, body main div.language-table tab
   user-select: none;
   height: 100%;
 }
+body main div.language-table table tr {
+  border-radius: 4px;
+}
 body main div.language-table table th {
-  background-color: var(--accent-blue);
+  background-color: #004fca;
 }
 body main div.language-table table td {
   background-color: var(--gray-secondary);
+}
+body main div.language-table table tr.selected {
+  outline: 1px crimson solid;
 }
 body main footer {
   flex: 1;

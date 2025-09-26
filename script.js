@@ -1,48 +1,47 @@
-let currentTh, startX, startWidth;
+// ====================== Column Resizing (no min/max, ignores content) ======================
+function enableResize() {
+  let currentTh = null, startX = 0, startWidth = 0;
 
-document.querySelectorAll("th .resizer").forEach(resizer => {
-  resizer.addEventListener("mousedown", (e) => {
-    currentTh = e.target.parentElement;
-    startX = e.pageX;
-    startWidth = currentTh.offsetWidth;
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
+  document.querySelectorAll("th .resizer").forEach(resizer => {
+    resizer.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      currentTh = e.target.parentElement;
+      startX = e.pageX;
+      startWidth = currentTh.offsetWidth;
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    });
   });
-});
 
-function onMouseMove(e) {
-  if (currentTh) {
+  function onMouseMove(e) {
+    if (!currentTh) return;
     const newWidth = startWidth + (e.pageX - startX);
-    currentTh.style.width = newWidth + "px";
+    currentTh.style.width = newWidth + "px"; // no constraints
+  }
+  function onMouseUp() {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    currentTh = null;
   }
 }
 
-function onMouseUp() {
-  document.removeEventListener("mousemove", onMouseMove);
-  document.removeEventListener("mouseup", onMouseUp);
-  currentTh = null;
-}
-
+// ====================== State ======================
 let dirHandle = null;
-let languages = {}; 
-let table = document.querySelector("table");
-let tbody = table.querySelector("tbody");
-let theadRow = table.querySelector("thead tr");
+let languages = {};        // { filename: { flatKey: value } }
+let keyOrder = [];         // preserves row order
+const table   = document.querySelector("table");
+const tbody   = table.querySelector("tbody");
+const theadTr = table.querySelector("thead tr");
 
-// --- Helpers ---
+// ====================== Helpers ======================
 function flatten(obj, prefix = "", res = {}) {
   for (const [k, v] of Object.entries(obj)) {
-    const key = prefix ? prefix + "." + k : k;
-    if (typeof v === "object" && v !== null && !Array.isArray(v)) {
-      flatten(v, key, res);
-    } else {
-      res[key] = v;
-    }
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (v && typeof v === "object" && !Array.isArray(v)) flatten(v, key, res);
+    else res[key] = v;
   }
   return res;
 }
-
 function unflatten(obj) {
   const res = {};
   for (const [key, value] of Object.entries(obj)) {
@@ -54,157 +53,151 @@ function unflatten(obj) {
   }
   return res;
 }
-
-// --- Status messages ---
-function showStatus(msg, type = "ok") {
+function showStatus(msg) {
   let bar = document.getElementById("statusBar");
   if (!bar) {
     bar = document.createElement("div");
     bar.id = "statusBar";
-    bar.style.position = "fixed";
-    bar.style.bottom = "10px";
-    bar.style.left = "50%";
-    bar.style.transform = "translateX(-50%)";
-    bar.style.background = "#333";
-    bar.style.color = "#fff";
-    bar.style.padding = "4px 10px";
-    bar.style.borderRadius = "4px";
-    bar.style.fontSize = "14px";
-    bar.style.zIndex = 9999;
+    Object.assign(bar.style, {
+      position: "fixed", bottom: "10px", left: "50%", transform: "translateX(-50%)",
+      background: "#333", color: "#fff", padding: "4px 10px", borderRadius: "4px",
+      fontSize: "14px", zIndex: 9999, transition: "opacity .2s"
+    });
     document.body.appendChild(bar);
   }
   bar.textContent = msg;
   bar.style.opacity = "1";
-  setTimeout(() => {
-    bar.style.opacity = "0";
-  }, 1500);
+  clearTimeout(bar._t);
+  bar._t = setTimeout(() => { bar.style.opacity = "0"; }, 1200);
 }
 
-// --- UI Rendering ---
+// ====================== Render ======================
 function renderTable() {
-  theadRow.innerHTML = "";
-  tbody.innerHTML = "";
-
-  let thKey = document.createElement("th");
+  // header
+  theadTr.innerHTML = "";
+  const thKey = document.createElement("th");
   thKey.textContent = "Key";
   thKey.appendChild(document.createElement("div")).className = "resizer";
-  theadRow.appendChild(thKey);
+  theadTr.appendChild(thKey);
 
-  Object.keys(languages).forEach(filename => {
-    let th = document.createElement("th");
-    let span = document.createElement("span");
+  const langFiles = Object.keys(languages);
+  langFiles.forEach(fname => {
+    const th = document.createElement("th");
+    const span = document.createElement("span");
     span.contentEditable = true;
-    span.textContent = filename;
+    span.textContent = fname;
     th.appendChild(span);
     th.appendChild(document.createElement("div")).className = "resizer";
-    theadRow.appendChild(th);
+    theadTr.appendChild(th);
   });
 
-  const allKeys = new Set();
-  Object.values(languages).forEach(lang => {
-    Object.keys(lang).forEach(k => allKeys.add(k));
+  // gather keys maintaining keyOrder
+  const seen = new Set(keyOrder);
+  Object.values(languages).forEach(flat => {
+    Object.keys(flat).forEach(k => { if (!seen.has(k)) { keyOrder.push(k); seen.add(k); } });
   });
 
-  allKeys.forEach(key => {
+  // body
+  tbody.innerHTML = "";
+  keyOrder.forEach(key => {
     const tr = document.createElement("tr");
+    tr.dataset.key = key;
+
     const tdKey = document.createElement("td");
     tdKey.contentEditable = true;
     tdKey.textContent = key;
     tr.appendChild(tdKey);
 
-    Object.keys(languages).forEach(filename => {
+    langFiles.forEach(fname => {
       const td = document.createElement("td");
       td.contentEditable = true;
-      td.textContent = languages[filename][key] || "";
+      td.textContent = languages[fname][key] ?? "";
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
 
   enableResize();
+  enableDragAndDrop();
 }
 
-// --- Column Resizing ---
-function enableResize() {
-  let currentTh = null, startX = 0, startWidth = 0;
-
-  document.querySelectorAll("th .resizer").forEach(resizer => {
-    resizer.onmousedown = e => {
-      currentTh = e.target.parentElement;
-      startX = e.clientX;
-      startWidth = currentTh.offsetWidth;
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    };
-  });
-
-  function onMouseMove(e) {
-    if (!currentTh) return;
-    const dx = e.clientX - startX;
-    currentTh.style.width = Math.max(startWidth + dx, 60) + "px";
-  }
-  function onMouseUp() {
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-    currentTh = null;
-  }
-}
-
-// --- File handling ---
+// ====================== File Handling ======================
 async function openFolder() {
   dirHandle = await window.showDirectoryPicker();
   await verifyPermission(dirHandle, true);
   localStorage.setItem("langDir", await serializeHandle(dirHandle));
   await loadLanguages();
+  keyOrder = []; // reset order; will be rebuilt in render
   renderTable();
 }
-
 async function loadLanguages() {
   languages = {};
   for await (const entry of dirHandle.values()) {
     if (entry.kind === "file" && entry.name.endsWith(".json")) {
       const file = await entry.getFile();
-      const text = await file.text();
       try {
-        const json = JSON.parse(text);
+        const json = JSON.parse(await file.text());
         languages[entry.name] = flatten(json);
       } catch (e) {
-        console.error("Invalid JSON in", entry.name, e);
+        console.error("Invalid JSON:", entry.name, e);
       }
     }
   }
 }
-
 async function saveAll() {
-  const rows = tbody.querySelectorAll("tr");
-  const filesData = {};
-  rows.forEach(tr => {
-    const tds = tr.querySelectorAll("td");
-    const key = tds[0].textContent.trim();
+  const langFiles = Object.keys(languages);
+  const rows = [...tbody.querySelectorAll("tr")];
+
+  // rebuild from DOM (so order + edits are honored)
+  const filesData = {}; // { fname: { flatKey: value } }
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    const key = row.dataset.key || cells[0].textContent.trim();
     if (!key) return;
-    Array.from(tds).slice(1).forEach((td, i) => {
-      const filename = Object.keys(languages)[i];
-      filesData[filename] = filesData[filename] || {};
-      filesData[filename][key] = td.textContent.trim();
+    langFiles.forEach((fname, i) => {
+      const val = cells[i + 1].textContent.trim();
+      (filesData[fname] ||= {})[key] = val;
     });
   });
 
-  for (const [filename, flatObj] of Object.entries(filesData)) {
-    const json = JSON.stringify(unflatten(flatObj), null, 2);
-    const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(json);
-    await writable.close();
+  // write files preserving order by iterating keyOrder
+  for (const fname of langFiles) {
+    const flat = {};
+    keyOrder.forEach(k => {
+      if (filesData[fname] && k in filesData[fname]) flat[k] = filesData[fname][k];
+    });
+    const jsonText = JSON.stringify(unflatten(flat), null, 2);
+    const fh = await dirHandle.getFileHandle(fname, { create: true });
+    const w = await fh.createWritable();
+    await w.write(jsonText);
+    await w.close();
   }
-
   showStatus("Saved ✔");
 }
 
-// --- Adding keys/languages ---
-function addKey() {
+// ====================== Add / Delete ======================
+function addKey(insertAfter = null) {
   const tr = document.createElement("tr");
+  tr.dataset.key = "";
+
   const tdKey = document.createElement("td");
   tdKey.contentEditable = true;
+
+  // Update dataset + keyOrder when editing
+  tdKey.addEventListener("input", () => {
+    const oldKey = tr.dataset.key;
+    const newKey = tdKey.textContent.trim();
+
+    // replace in keyOrder
+    if (oldKey && oldKey !== newKey) {
+      keyOrder = keyOrder.map(k => (k === oldKey ? newKey : k));
+    } else if (!oldKey && newKey) {
+      keyOrder.push(newKey);
+    }
+
+    tr.dataset.key = newKey;
+  });
+
   tr.appendChild(tdKey);
 
   Object.keys(languages).forEach(() => {
@@ -212,59 +205,163 @@ function addKey() {
     td.contentEditable = true;
     tr.appendChild(td);
   });
-  tbody.appendChild(tr);
+
+  if (insertAfter) {
+    tbody.insertBefore(tr, insertAfter.nextSibling);
+    const idx = keyOrder.indexOf(insertAfter.dataset.key);
+    if (idx >= 0) keyOrder.splice(idx + 1, 0, "");
+  } else {
+    tbody.appendChild(tr);
+    keyOrder.push("");
+  }
+
+  enableDragAndDrop();
 }
 
 function addLanguage() {
   const name = prompt("Enter new language filename (e.g. fr.json):");
   if (!name) return;
+  if (languages[name]) { showStatus("Language already exists"); return; }
   languages[name] = {};
   renderTable();
 }
 
-// --- Shortcuts ---
+// Right-click on first column to delete row (all languages)
+tbody.addEventListener("contextmenu", (e) => {
+  const td = e.target.closest("td");
+  if (!td) return;
+  const tr = td.parentElement;
+  if (td.cellIndex !== 0) return;
+  e.preventDefault();
+  const keyName = td.textContent.trim();
+  if (!keyName) { tr.remove(); return; }
+  if (confirm(`Delete key "${keyName}" in all languages?`)) {
+    // remove from in-memory languages so refresh doesn't resurrect it
+    Object.values(languages).forEach(flat => { delete flat[keyName]; });
+    // remove from order + DOM
+    keyOrder = keyOrder.filter(k => k !== keyName);
+    tr.remove();
+    showStatus(`Deleted: ${keyName}`);
+  }
+});
+
+// ====================== Shortcuts ======================
 document.addEventListener("keydown", e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
     e.preventDefault();
     saveAll();
   }
 });
 
-// --- Permissions ---
+// ====================== Permissions & Persistence ======================
 async function verifyPermission(handle, withWrite) {
-  const opts = {};
-  if (withWrite) opts.mode = "readwrite";
-  if ((await handle.queryPermission(opts)) === "granted") {
-    return true;
-  }
-  if ((await handle.requestPermission(opts)) === "granted") {
-    return true;
-  }
-  return false;
+  const opts = withWrite ? { mode: "readwrite" } : {};
+  if ((await handle.queryPermission(opts)) === "granted") return true;
+  return (await handle.requestPermission(opts)) === "granted";
 }
+// Minimal serialization placeholder (real persisted handles need storage APIs w/ user grant)
+async function serializeHandle(handle) { return handle.name; }
 
-// Serialize/deserialize handles (uses Origin Private File System persistence)
-async function serializeHandle(handle) {
-  return await handle.name; // simplified fallback
-}
-
-// --- Try restore on load ---
+// Try restore (note: browsers often require re-pick for security)
 (async () => {
   const stored = localStorage.getItem("langDir");
-  if (stored) {
-    try {
-      // 👇 NOTE: Currently, only Chrome remembers handles persistently if you request it.
-      // In many cases you’ll still need to re-pick the folder.
-      showStatus("Please re-open folder (browser security)");
-    } catch (e) {
-      console.warn("Restore failed", e);
-    }
-  }
+  if (stored) showStatus("Tip: Click the folder to re-open last directory");
 })();
 
-// --- Bind buttons ---
-document.getElementById("openFolderButton").onclick = openFolder;
-document.getElementById("saveButton").onclick = saveAll;
-document.getElementById("addKeyButton").onclick = addKey;
-document.getElementById("addLanguageButton").onclick = addLanguage;
-document.getElementById("refreshButton").onclick = () => renderTable();
+tbody.addEventListener("contextmenu", (e) => {
+  const td = e.target.closest("td");
+  if (!td) return;
+  if (td.cellIndex === 0) return; // 🚫 ignore first column
+
+  e.preventDefault();
+  const tr = td.parentElement;
+
+  const rect = tr.getBoundingClientRect();
+  const clickY = e.clientY;
+
+  if (clickY < rect.top + rect.height / 2) {
+    // clicked in top half → insert before
+    addKey(tr.previousSibling);
+  } else {
+    // clicked in bottom half → insert after
+    addKey(tr);
+  }
+});
+
+tbody.addEventListener("click", (e) => {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
+  tbody.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+  tr.classList.add("selected");
+});
+
+document.addEventListener("keydown", (e) => {
+  const selected = tbody.querySelector("tr.selected");
+  if (!selected) return;
+
+  if (e.key === "ArrowUp") {
+    e.preventDefault();
+    const prev = selected.previousElementSibling;
+    if (prev) {
+      tbody.insertBefore(selected, prev);
+      updateKeyOrderFromDOM();
+    }
+  }
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    const next = selected.nextElementSibling;
+    if (next) {
+      tbody.insertBefore(next, selected);
+      updateKeyOrderFromDOM();
+    }
+  }
+
+  // Select row on click
+tbody.addEventListener("click", (e) => {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
+  tbody.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+  tr.classList.add("selected");
+});
+
+// Deselect when clicking outside the table
+document.addEventListener("click", (e) => {
+  const insideTable = e.target.closest("table");
+  if (!insideTable) {
+    tbody.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+  }
+});
+
+});
+
+// Select row on click
+tbody.addEventListener("click", (e) => {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
+
+  // clear old selection
+  tbody.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+  tr.classList.add("selected");
+
+  // one-time listener to deselect if click is outside this row
+  const deselect = (ev) => {
+    if (!tr.contains(ev.target)) {
+      tr.classList.remove("selected");
+      document.removeEventListener("click", deselect);
+    }
+  };
+  document.addEventListener("click", deselect);
+});
+
+
+function updateKeyOrderFromDOM() {
+  keyOrder = [...tbody.querySelectorAll("tr")].map(tr => tr.dataset.key || tr.cells[0].textContent.trim());
+}
+
+// ====================== Bind UI Buttons ======================
+document.getElementById("openFolderButton").onclick   = openFolder;
+document.getElementById("saveButton").onclick         = saveAll;
+document.getElementById("addKeyButton").onclick       = addKey;
+document.getElementById("addLanguageButton").onclick  = addLanguage;
+document.getElementById("refreshButton").onclick      = renderTable;

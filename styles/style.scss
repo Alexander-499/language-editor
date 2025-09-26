@@ -11,7 +11,6 @@
   --border: #444;
   --border-light: #4448;
   --text-primary: white;
-  --accent-blue: #004fca;
 }
 
 body {
@@ -72,14 +71,15 @@ body {
       width: 100%;
       border-spacing: 8px;
       table-layout: fixed;
-
+      
+      
       th, td {
         max-width: 50vw;
         position: relative;
         border: 1px var(--border-light) solid;
         border-radius: 4px;
         padding: 8px;
-
+        
         .resizer {
           position: absolute;
           right: -8px;
@@ -90,9 +90,12 @@ body {
           height: 100%;
         }
       }
-
-      th { background-color: var(--accent-blue); }
+      
+      tr { border-radius: 4px; }
+      th { background-color: #004fca; }
       td { background-color: var(--gray-secondary); }
+      tr.selected { outline: 1px crimson solid; }
+
     }
 
     footer { flex: 1; }
