@@ -63,13 +63,13 @@ body header button svg {
 }
 body main {
   max-width: calc(100vw - 16px);
-  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   padding: 8px;
   overflow: auto;
 }
 body main div.language-table table {
+  height: calc(100vh - 96px);
   width: 100%;
   border-spacing: 8px;
   table-layout: fixed;
@@ -95,4 +95,7 @@ body main div.language-table table th {
 }
 body main div.language-table table td {
   background-color: var(--gray-secondary);
+}
+body main footer {
+  flex: 1;
 }/*# sourceMappingURL=style.css.map */

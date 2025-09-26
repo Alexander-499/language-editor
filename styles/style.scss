@@ -62,13 +62,13 @@ body {
 
   main {
     max-width: calc(100vw - 16px);
-    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     padding: 8px;
     overflow: auto;
 
     div.language-table table {
+      height: calc(100vh - 96px);
       width: 100%;
       border-spacing: 8px;
       table-layout: fixed;
@@ -94,5 +94,7 @@ body {
       th { background-color: var(--accent-blue); }
       td { background-color: var(--gray-secondary); }
     }
+
+    footer { flex: 1; }
   }
 }
