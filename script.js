@@ -25,6 +25,29 @@ function enableResize() {
   }
 }
 
+// ====================== Force Plain Text in ContentEditable ======================
+function makePlainTextOnly(el) {
+  // Prevent rich-text paste
+  el.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData("text/plain");
+    document.execCommand("insertText", false, text);
+  });
+
+  // Remove accidental HTML if user drags/drops or browser adds <div>/<br>
+  el.addEventListener("input", () => {
+    if (el.innerHTML !== el.textContent) {
+      el.textContent = el.textContent; // strip formatting
+    }
+  });
+}
+
+// Apply to all table cells (header + body)
+function applyPlainTextMode() {
+  document.querySelectorAll("td[contenteditable], th span[contenteditable]").forEach(makePlainTextOnly);
+}
+
+
 // ====================== State ======================
 let dirHandle = null;
 let languages = {};        // { filename: { flatKey: value } }
@@ -119,6 +142,7 @@ function renderTable() {
 
   enableResize();
   enableDragAndDrop();
+  applyPlainTextMode();
 }
 
 // ====================== File Handling ======================
