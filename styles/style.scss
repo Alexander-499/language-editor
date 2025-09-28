@@ -71,15 +71,17 @@ body {
       width: 100%;
       border-spacing: 8px;
       table-layout: fixed;
-      
-      
+
       th, td {
         max-width: 50vw;
         position: relative;
         border: 1px var(--border-light) solid;
         border-radius: 4px;
         padding: 8px;
-        
+
+        &:empty { border: 1px goldenrod solid; }
+        &:focus { outline: none; }
+
         .resizer {
           position: absolute;
           right: -8px;
@@ -94,7 +96,7 @@ body {
       tr { border-radius: 4px; }
       th { background-color: #004fca; }
       td { background-color: var(--gray-secondary); }
-      tr.selected { outline: 1px crimson solid; }
+      tr.selected { outline: 4px crimson solid; }
 
     }
 

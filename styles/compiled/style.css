@@ -80,6 +80,12 @@ body main div.language-table table th, body main div.language-table table td {
   border-radius: 4px;
   padding: 8px;
 }
+body main div.language-table table th:empty, body main div.language-table table td:empty {
+  border: 1px goldenrod solid;
+}
+body main div.language-table table th:focus, body main div.language-table table td:focus {
+  outline: none;
+}
 body main div.language-table table th .resizer, body main div.language-table table td .resizer {
   position: absolute;
   right: -8px;
@@ -99,7 +105,7 @@ body main div.language-table table td {
   background-color: var(--gray-secondary);
 }
 body main div.language-table table tr.selected {
-  outline: 1px crimson solid;
+  outline: 4px crimson solid;
 }
 body main footer {
   flex: 1;
