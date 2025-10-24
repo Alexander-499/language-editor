@@ -190,7 +190,7 @@ async function saveAll() {
     keyOrder.forEach(k => {
       if (filesData[fname] && k in filesData[fname]) flat[k] = filesData[fname][k];
     });
-    const jsonText = JSON.stringify(unflatten(flat), null, 2);
+    const jsonText = JSON.stringify(unflatten(flat), null, 2).replace(/\\\\n/g, "\\n");
     const fh = await dirHandle.getFileHandle(fname, { create: true });
     const w = await fh.createWritable();
     await w.write(jsonText);
