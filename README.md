@@ -10,6 +10,9 @@ languages
 └── fr.json
 ```
 
+> [!NOTE]
+> For bigger projects I recommend using services like [Tolgee](https://tolgee.io) or [Crowdin](https://crowdin.com) since this is slightly buggy and not that scalable. For my mobile app [Zpeedometer](https://zpeedometer.alexander499.de) I chose Tolgee since it is free and easy to implement into Vue (with a `t(key: string)` function).
+
 ## More info
 
-I got the idea from the [Enhanced i18n json editor](https://marketplace.visualstudio.com/items?itemName=trystan4861.enhanced-i18n-json-editor), which worked horribly for me, so I made my own. Due to time constraints I made the whole JavaScript with ChatGPT, UI (HTML, CSS) was made by me.
+I got the idea from the [Enhanced i18n json editor](https://marketplace.visualstudio.com/items?itemName=trystan4861.enhanced-i18n-json-editor), which worked horribly for me, so I made my own. Due to time constraints I made the whole JavaScript with ChatGPT, UI (HTML, CSS) were made by me.
